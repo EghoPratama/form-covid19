@@ -9,48 +9,26 @@
             <q-form>
               <q-card flat class="q-mt-md card-form">
                 <q-card-section>
-                  <q-input
-                    v-model="name_model"
-                    label="Nama"
-                    color="primary"
-                    label-color="primary"
-                    dense
-                    class="q-mt-sm"
-                    outlined
-                    :rules="[
-                      (val) => !!val || 'Isi Dulu ya ..',
-                    ]"
-                  >
-                    <template v-slot:append>
-                      <q-icon size="xs" color="brown" name="edit" />
-                    </template>
-                  </q-input>
+                  <FormInputText
+                    :model_data="name_model"
+                    :label_name="'Nama'"
+                    :value="'name_model'"
+                    @model-data="modelData"
+                  />
 
-                  <q-input
-                    v-model="id_model"
-                    label="NIK"
-                    color="primary"
-                    label-color="primary"
-                    dense
-                    outlined
-                    type="number"
-                    :rules="[
-                      (val) => !!val || 'Isi Dulu ya ..',
-                    ]"
-                  ></q-input>
+                  <FormInputNumber
+                    :model_num="id_model"
+                    :label_name="'NIK'"
+                    :value="'id_model'"
+                    @model-num="modelNum"
+                  />
 
-                  <q-input
-                    v-model="fam_id_model"
-                    label="Nomor Kartu Keluarga"
-                    color="primary"
-                    label-color="primary"
-                    dense
-                    outlined
-                    type="number"
-                    :rules="[
-                      (val) => !!val || 'Isi Dulu ya ..',
-                    ]"
-                  ></q-input>
+                  <FormInputNumber
+                    :model_num="fam_id_model"
+                    :label_name="'Nomor Kartu Keluarga'"
+                    :value="'fam_id_model'"
+                    @model-num="modelNum"
+                  />
 
                   <q-file
                     v-model="id_photo"
@@ -119,10 +97,14 @@
 <script>
 import { mapActions } from "vuex";
 import FormSelect from "../components/FormSelect.vue";
+import FormInputText from "../components/FormInputText.vue";
+import FormInputNumber from "../components/FormInputNumber.vue";
 export default {
   name: 'name-box',
   components: {
-    FormSelect
+    FormSelect,
+    FormInputText,
+    FormInputNumber,
   },
 
   data() {
@@ -156,6 +138,20 @@ export default {
         position: "top",
         message: `Maaf, file tidak lolos validasi (harus berekstensi .jpg/.jpeg/.png dan maksimal ukuran 2MB`,
       });
+    },
+
+    modelData(e) {
+      if (e.value == "name_model") {
+        this.name_model = e.data;
+      }
+    },
+
+    modelNum(e) {
+      if (e.value == "id_model") {
+        this.id_model = e.data;
+      } else if (e.value == "fam_id_model") {
+        this.fam_id_model = e.data;
+      }
     },
 
     formSelect(e) {
