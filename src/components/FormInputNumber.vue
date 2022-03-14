@@ -7,9 +7,7 @@
     dense
     outlined
     type="number"
-    :rules="[
-      (val) => !!val || 'Isi Dulu ya ..',
-    ]"
+    :rules="value == 'age_model' ? rules_age : rules_num"
   ></q-input>
 </template>
 
@@ -20,6 +18,15 @@ export default {
   data() {
     return {
       num_model: "",
+
+      rules_num: [
+        (val) => !!val || 'Isi Dulu ya ..',
+      ],
+
+      rules_age: [
+        (val) => !!val || 'Isi Dulu ya ..',
+        (val) => val >= 25 || 'Umur harus lebih atau sama dengan 25 tahun',
+      ],
     }
   },
 

@@ -4,9 +4,9 @@
       <q-page class="flex flex-center bg-dark">
         <q-card flat class="bg-dark my-card-login">
           <q-card-section>
-            <p class="text-h5 text-white text-center">Form Bantuan Pandemi Covid-19</p>
+            <p class="text-h5 text-white text-center">Form Permohonan Bantuan Pandemi Covid-19</p>
 
-            <q-form>
+            <q-form @submit="saveData()">
               <q-card flat class="q-mt-md card-form">
                 <q-card-section>
                   <FormInputText
@@ -30,25 +30,26 @@
                     @model-num="modelNum"
                   />
 
-                  <q-file
-                    v-model="id_photo"
-                    label="Foto KTP"
-                    color="primary"
-                    label-color="primary"
-                    dense
-                    outlined
-                    clearable
-                    accept=".jpg, image/*"
-                    max-file-size="2048000"
-                    @rejected="handleFileUpload"
-                    :rules="[
-                      (val) => (val && val.length > 0) || val || 'Please upload file',
-                    ]"
-                  >
-                    <template v-slot:append>
-                      <q-icon size="xs" color="brown" name="attach_file" />
-                    </template>
-                  </q-file>
+                  <FormFile
+                    :photo_file="id_photo"
+                    :hint="'Foto KTP'"
+                    :value="'id_photo'"
+                    @fill-photo="fillPhoto"
+                  />
+
+                  <FormFile
+                    :photo_file="fam_id_photo"
+                    :hint="'Foto Kartu Keluarga'"
+                    :value="'fam_id_photo'"
+                    @fill-photo="fillPhoto"
+                  />
+
+                  <FormInputNumber
+                    :model_num="age_model"
+                    :label_name="'Umur'"
+                    :value="'age_model'"
+                    @model-num="modelNum"
+                  />
 
                   <FormSelect
                     :model_select="gender_model"
@@ -84,11 +85,82 @@
                     :value="'village'"
                     @form-select="formSelect"
                   />
+
+                  <FormInputText
+                    :model_data="address_model"
+                    :label_name="'Alamat'"
+                    :value="'address_model'"
+                    @model-data="modelData"
+                  />
+
+                  <FormInputText
+                    :model_data="rt_model"
+                    :label_name="'RT'"
+                    :value="'rt_model'"
+                    @model-data="modelData"
+                  />
+
+                  <FormInputText
+                    :model_data="rw_model"
+                    :label_name="'RW'"
+                    :value="'rw_model'"
+                    @model-data="modelData"
+                  />
+
+                  <FormInputNumber
+                    :model_num="income_before"
+                    :label_name="'Penghasilan Sebelum Pandemi'"
+                    :value="'income_before'"
+                    @model-num="modelNum"
+                  />
+
+                  <FormInputNumber
+                    :model_num="income_after"
+                    :label_name="'Penghasilan Setelah Pandemi'"
+                    :value="'income_after'"
+                    @model-num="modelNum"
+                  />
+
+                  <p
+                    class="text-subtitle2 text-primary text-weight-regular"
+                  >Alasan Membutuhkan Bantuan</p>
+                  <q-option-group
+                    :options="reason_option"
+                    label="Notifications"
+                    type="radio"
+                    v-model="reason_model"
+                    class="text-caption"
+                  />
+
+                  <FormInputText
+                    v-if="reason_model == 'lainnya'"
+                    :model_data="another_reason"
+                    :label_name="'Lainnya'"
+                    :value="'another_reason'"
+                    @model-data="modelData"
+                  />
+
+                  <div class="text-center">
+                    <q-btn
+                      class="q-mt-sm"
+                      color="positive"
+                      label="Simpan"
+                      no-caps
+                      style="width:150px;max-width:100%;"
+                      type="submit"
+                    />
+                  </div>
                 </q-card-section>
               </q-card>
             </q-form>
           </q-card-section>
         </q-card>
+
+        <DialogPreview
+          :dialog="dialog_preview"
+          :data_saved="data_saved"
+          @dialog-prev="dialogPrev"
+        />
       </q-page>
     </q-page-container>
   </q-layout>
@@ -99,12 +171,16 @@ import { mapActions } from "vuex";
 import FormSelect from "../components/FormSelect.vue";
 import FormInputText from "../components/FormInputText.vue";
 import FormInputNumber from "../components/FormInputNumber.vue";
+import FormFile from "../components/FormFile.vue";
+import DialogPreview from "../components/DialogPreview.vue";
 export default {
   name: 'name-box',
   components: {
     FormSelect,
     FormInputText,
     FormInputNumber,
+    FormFile,
+    DialogPreview,
   },
 
   data() {
@@ -114,13 +190,55 @@ export default {
       fam_id_model: null,
 
       id_photo: null,
+      id_photo_url: '',
       fam_id_photo: null,
+      fam_id_photo_url: '',
 
       gender_model: '',
       province_model: '',
       regency_model: '',
       district_model: '',
       village_model: '',
+
+      address_model: '',
+      rt_model: '',
+      rw_model: '',
+
+      income_before: null,
+      income_after: null,
+      age_model: null,
+
+      another_reason: '',
+      reason_model: '',
+      reason_option: [
+        {
+          label: "Kehilangan pekerjaan",
+          value: "Kehilangan pekerjaan",
+          color: "green",
+          size: "25px",
+        },
+        {
+          label: "Kepala keluarga terdampak atau korban Covid-19",
+          value: "Kepala keluarga terdampak atau korban Covid-19",
+          color: "green",
+          size: "25px",
+        },
+        {
+          label: "Tergolong fakir/miskin semenjak sebelum Covid-19",
+          value: "Tergolong fakir/miskin semenjak sebelum Covid-19",
+          color: "green",
+          size: "25px",
+        },
+        {
+          label: "Lainnya (jelaskan secara detail)",
+          value: "lainnya",
+          color: "green",
+          size: "25px",
+        },
+      ],
+
+      dialog_preview: false,
+      data_saved: null,
     }
   },
 
@@ -132,17 +250,31 @@ export default {
       get_village: "example/getVillage",
     }),
 
-    handleFileUpload() {
-      this.$q.notify({
-        type: "negative",
-        position: "top",
-        message: `Maaf, file tidak lolos validasi (harus berekstensi .jpg/.jpeg/.png dan maksimal ukuran 2MB`,
-      });
+    dialogPrev(e) {
+      this.dialog_preview = e;
+    },
+
+    fillPhoto(e) {
+      if (e.value == "id_photo") {
+        this.id_photo = e.data;
+        this.id_photo_url = e.url;
+      } else if (e.value == "fam_id_photo") {
+        this.fam_id_photo = e.data;
+        this.fam_id_photo_url = e.url;
+      }
     },
 
     modelData(e) {
       if (e.value == "name_model") {
         this.name_model = e.data;
+      } else if (e.value == "address_model") {
+        this.address_model = e.data;
+      } else if (e.value == "rt_model") {
+        this.rt_model = e.data;
+      } else if (e.value == "rw_model") {
+        this.rw_model = e.data;
+      } else if (e.value == "another_reason") {
+        this.another_reason = e.data;
       }
     },
 
@@ -151,6 +283,12 @@ export default {
         this.id_model = e.data;
       } else if (e.value == "fam_id_model") {
         this.fam_id_model = e.data;
+      } else if (e.value == "age_model") {
+        this.age_model = e.data;
+      } else if (e.value == "income_before") {
+        this.income_before = e.data;
+      } else if (e.value == "income_after") {
+        this.income_after = e.data;
       }
     },
 
@@ -190,6 +328,30 @@ export default {
           label: e.label,
         }
       }
+    },
+
+    saveData() {
+      this.data_saved = {
+        name: this.name_model,
+        id: this.id_model,
+        fam_id: this.fam_id_model,
+        id_photo: this.id_photo_url,
+        fam_id_photo: this.fam_id_photo_url,
+        age: this.age_model,
+        gender: this.gender_model ? this.gender_model.label : '',
+        province: this.province_model ? this.province_model.label : '',
+        regency: this.regency_model ? this.regency_model.label : '',
+        district: this.district_model ? this.district_model.label : '',
+        village: this.village_model ? this.village_model.label : '',
+        address: this.address_model,
+        rt: this.rt_model,
+        rw: this.rw_model,
+        income_before: this.income_before,
+        income_after: this.income_after,
+        reason: this.reason_model == 'lainnya' ? this.another_reason : this.reason_model,
+      };
+
+      this.dialog_preview = true;
     }
   },
 
